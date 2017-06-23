@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Show Lists</title>
+</head>
+<body>
+<ul>
+{% for list in lists %}
+    <li><a href="{% url 'core:edit_list' list.id %}">{{ list.name }}</a></li>
+{% endfor %}
+</ul>
+</body>
+</html>
