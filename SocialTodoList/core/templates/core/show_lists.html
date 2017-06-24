@@ -5,10 +5,32 @@
     <title>Show Lists</title>
 </head>
 <body>
+<h3>Lists Index:</h3>
 <ul>
 {% for list in lists %}
     <li><a href="{% url 'core:edit_list' list.id %}">{{ list.name }}</a></li>
 {% endfor %}
 </ul>
+
+<h3>Create new List</h3>
+
+<div id="addList">
+    <form method="POST" action="{% url 'core:create_list' %}">
+        {% csrf_token %}
+        <input type="text" name="newListName" />
+        <input type="submit" value="Create List" />
+        {% csrf_token %}
+    </form>
+</div>
+
+{% if messages %}
+<h4>Feedback:</h4>
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
 </body>
 </html>

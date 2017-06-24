@@ -5,25 +5,34 @@
     <title>Edit List {{ list.name }}</title>
 </head>
 <body>
+<h3><a href="{% url 'core:show_lists' %}">Back to Lists Index</a></h3>
+
 <h2>Details for list "{{ list.name }}"</h2>
 <ul>
 {% for item in items %}
-    <li>{{ item.text }} <a href="{% url 'core:delete_item_from_list' list.id item.id %}">[delete]</a> </li>
+    <li><a {% if item.done %} style="text-decoration:line-through" {% endif %}>{{ item.text }} {% if item.deadline %}(due on {{item.deadline}}){% endif %}</a>
+        <a href="{% url 'core:delete_item_from_list' list.id item.id %}">[delete]</a>
+        <a href="{% url 'core:toggle_item_done' list.id item.id %}">[mark as {% if item.done %}not done{% else %}done{% endif %}]</a>
+        <a href="{% url 'core:edit_item' list.id item.id %}">[edit]</a>
+    </li>
 {% endfor %}
 </ul>
 
-<h3><a href="{% url 'core:add_item_to_list' list.id %}">Add new Item to List</a></h3>
+<h3>Add new Item to List</h3>
 
 <div id="addItem">
     <form method="POST" action="{% url 'core:add_item_to_list' list.id %}">
         {% csrf_token %}
-        <input type="text" name="newItemText" />
+        Text: <input type="text" name="newItemText" /> <br/>
+        Deadline: <input type="date" name="newItemDeadline" /> <br/>
+        Done: <input type="checkbox" name="newItemDone" /> <br/>
         <input type="submit" value="Add Item" />
         {% csrf_token %}
     </form>
 </div>
 
 {% if messages %}
+<h4>Feedback:</h4>
 <ul class="messages">
     {% for message in messages %}
     <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
