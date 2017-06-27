@@ -6,6 +6,7 @@
 </head>
 <body>
 <h3><a href="{% url 'core:show_lists' %}">Back to Lists Index</a></h3>
+<h3><a href="{% url 'core:edit_list' list.id %}">Back to List "{{ list.name }}"'s Details</a></h3>
 
 <h2>Edit Item from List "{{ list.name }}"</h2>
 

@@ -1,7 +1,3 @@
-import pytz
-
-from datetime import datetime
-
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
@@ -47,8 +43,6 @@ def add_item(request, list_id):
             if deadline:
                 new_item.deadline = deadline
             new_item.save()
-
-            new_item.add_item_at_bottom()
 
             messages.success(request, "The item {} was added successfully!".format(new_item.text))
         else:

@@ -5,7 +5,11 @@
     <title>Show Lists</title>
 </head>
 <body>
-<h3>Lists Index:</h3>
+<h2>Lists Index:</h2>
+{% if not lists %}
+<p><i>No lists created yet.</i></p>
+{% endif %}
+
 <ul>
 {% for list in lists %}
     <li><a href="{% url 'core:edit_list' list.id %}">{{ list.name }}</a></li>

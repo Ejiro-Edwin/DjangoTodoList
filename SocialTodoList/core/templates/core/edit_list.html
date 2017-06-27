@@ -8,9 +8,12 @@
 <h3><a href="{% url 'core:show_lists' %}">Back to Lists Index</a></h3>
 
 <h2>Details for list "{{ list.name }}"</h2>
+{% if not items %}
+<p><i>No items in this list yet.</i></p>
+{% endif %}
 <ul>
 {% for item in items %}
-    <li><a {% if item.done %} style="text-decoration:line-through" {% endif %}>{{ item.text }} {% if item.deadline %}(due on {{item.deadline}}){% endif %}</a>
+    <li><a {% if item.done %} style="text-decoration:line-through" {% endif %}>{{ item.text }}{% if item.deadline %} (due on {{item.deadline}}){% endif %}</a>
         <a href="{% url 'core:delete_item_from_list' list.id item.id %}">[delete]</a>
         <a href="{% url 'core:toggle_item_done' list.id item.id %}">[mark as {% if item.done %}not done{% else %}done{% endif %}]</a>
         <a href="{% url 'core:edit_item' list.id item.id %}">[edit]</a>
