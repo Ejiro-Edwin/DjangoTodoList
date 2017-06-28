@@ -1,0 +1,70 @@
+{
+  "name": "test_labcodes_node",
+  "version": "1.0.0",
+  "description": "Labcodes Challenge - Social Todo List",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "babel-node server.js",
+    "build": "NODE_ENV=production webpack -p --progress --colors --config webpack.prod.config.js --bail",
+    "lint": "eslint assets"
+  },
+  "dependencies": {
+    "autoprefixer": "^6.7.7",
+    "axios": "^0.16.2",
+    "babel-cli": "^6.24.1",
+    "babel-core": "^6.24.1",
+    "babel-loader": "^6.4.1",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
+    "bootstrap": "4.0.0-alpha.6",
+    "bootstrap-loader": "^2.0.0",
+    "classnames": "^2.2.5",
+    "css-loader": "^0.26.4",
+    "django-react-csrftoken": "^1.0.1",
+    "expose-loader": "^0.7.3",
+    "extract-text-webpack-plugin": "^2.1.0",
+    "file-loader": "^0.10.1",
+    "imports-loader": "^0.7.1",
+    "jquery": "^3.2.1",
+    "lodash": "^4.17.4",
+    "marked": "^0.3.6",
+    "moment": "^2.18.1",
+    "node-sass": "^4.5.3",
+    "postcss": "^5.2.17",
+    "postcss-loader": "^1.3.3",
+    "react": "^15.5.4",
+    "react-datepicker": "^0.47.0",
+    "react-dom": "^15.5.4",
+    "react-router": "^3.0.2",
+    "redux": "^3.6.0",
+    "resolve-url-loader": "^1.6.1",
+    "sass-loader": "^5.0.1",
+    "script-loader": "^0.7.0",
+    "style-loader": "^0.13.2",
+    "url-loader": "^0.5.8",
+    "webpack": "^2.6.1",
+    "webpack-bundle-tracker": "^0.2.0",
+    "webpack-dev-server": "^2.4.5",
+    "webpack-spritesmith": "^0.3.3",
+    "whatwg-fetch": "^2.0.3"
+  },
+  "devDependencies": {
+    "eslint": "^3.8.1",
+    "eslint-config-airbnb": "^14.1.0",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-jsx-a11y": "^4.0.0",
+    "eslint-plugin-react": "^6.4.1",
+    "react-hot-loader": "^1.3.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lucabezerra/DjangoTodoList.git"
+  },
+  "author": "Luca Bezerra",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lucabezerra/DjangoTodoList/issues"
+  },
+  "homepage": "https://github.com/lucabezerra/DjangoTodoList#readme"
+}

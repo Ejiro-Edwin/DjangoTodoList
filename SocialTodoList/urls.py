@@ -18,5 +18,7 @@ from django.contrib import admin
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^djangojs/', include('djangojs.urls')),
+
     url(r'^', include("SocialTodoList.core.urls")),
 ]

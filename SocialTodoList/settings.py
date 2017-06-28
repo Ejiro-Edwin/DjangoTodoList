@@ -39,7 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'SocialTodoList.core.apps.CoreConfig',
+
+    'SocialTodoList.core',
+
+    'djangojs',
+    'webpack_loader',
 ]
 
 MIDDLEWARE = [
@@ -119,3 +123,24 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+
+def base_dir_join(*args):
+    return os.path.join(BASE_DIR, *args)
+
+STATICFILES_DIRS = (
+    base_dir_join('assets'),
+)
+
+# Webpack
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'CACHE': False,  # on DEBUG should be False
+        'STATS_FILE': base_dir_join('webpack-stats.json'),
+        'POLL_INTERVAL': 0.1,
+        'IGNORE': ['.+\.hot-update.js', '.+\.map']
+    },
+    'JQUERY': {
+        'BUNDLE_DIR_NAME': 'bundles/',
+        'STATS_FILE': 'jquery-webpack-stats.json',
+    }
+}
