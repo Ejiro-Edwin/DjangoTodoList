@@ -6,6 +6,16 @@
 <!--<p>JSON String: {{ local_storage }}</p>-->
 <!--<p>SessionID: {{ local_storage.sessionid }}</p>-->
 <!--<p>CSRF Token: {{ local_storage.csrftoken }}</p>-->
+<script type="text/javascript">
+  function fillLocalStorage() {
+    localStorage.setItem("sessionid", "{{ local_storage.sessionid }}");
+    localStorage.setItem("csrftoken", "{{ local_storage.csrftoken }}");
+  }
+
+  fillLocalStorage();
+
+</script>
+
 {% if messages %}
   <div style="border: 1px; border-style: dashed; text-align: center;">
     {% for message in messages %}

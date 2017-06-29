@@ -1,6 +1,8 @@
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.core import serializers
 from django.http import HttpResponseRedirect
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 
@@ -9,12 +11,20 @@ from .models import Item, List
 
 def show_lists(request):
     lists = List.objects.all()
-    return render(request, "core/show_lists.html", {"lists": lists})
+    payload = {
+        "name": request.user.first_name,
+        "local_storage": {
+            "sessionid": request.COOKIES.get("sessionid"),
+            "csrftoken": request.COOKIES.get("csrftoken")
+        },
+        "lists": lists
+    }
+    return render(request, "core/react_index.html", payload)
 
 
 def create_list(request):
     try:
-        user = User.objects.get(username="admin")
+        user = User.objects.get(username="admin")  # TODO: change to the actual user's ID from request
         new_list = List(name=request.POST.get("newListName"), owner=user)
         new_list.save()
 
@@ -102,3 +112,20 @@ def edit_item(request, list_id, item_id):
     else:
         current_list = List.objects.get(id=list_id)
         return render(request, "core/edit_item.html", {'list': current_list, 'item': item})
+
+
+# ------------------------
+def get_all_lists(request):
+    lists = List.objects.all()
+    data = serializers.serialize('json', lists)
+    return JsonResponse(data, safe=False)
+
+
+def get_list_info(request, list_id):
+    current_list = [List.objects.get(id=list_id)]
+    items = Item.objects.filter(list__id=list_id).order_by('order')
+    data = {
+        "items": serializers.serialize('json', items),
+        "list": serializers.serialize('json', current_list)
+    }
+    return JsonResponse(data, safe=False)
