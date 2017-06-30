@@ -161,15 +161,10 @@ def add_item_to_list(request, list_id):
             new_item = Item(list=current_list, text=text, order=0, done=done)
             deadline = data.get("newItemDeadline")
             if deadline:
-                if len(deadline) <= 10:
-                    deadline += ' 00:00:00.000000'
-
-                deadline = datetime.strptime(deadline, '%Y-%m-%d %H:%M:%S.%f')
-                new_item.deadline = deadline
+                new_item.deadline = datetime.strptime(deadline, '%Y-%m-%d')
             new_item.save()
 
             data = serializers.serialize('json', [new_item])
-
             message = "The item {} was added successfully!".format(new_item.text)
         else:
             raise Exception("Not enough data provided for creating the item.")
@@ -178,3 +173,20 @@ def add_item_to_list(request, list_id):
         message = "There was an error while trying to add the item. Please try again."
 
     return JsonResponse({"message": message, "newItem": data})
+
+
+def delete_item_from_list(request, list_id, item_id):
+    message = ""  # noqa
+    try:
+        data = json.loads(request.body.decode())['data']
+        user_id = data.get("userId")
+
+        item = Item.objects.get(id=item_id)
+        item.delete()
+
+        message = "The item {} was deleted successfully!".format(item.text)
+    except Exception as e:
+        print(":::: ERROR:", e)
+        message = "There was an error while trying to delete the item. Please try again."
+
+    return JsonResponse({"message": message})

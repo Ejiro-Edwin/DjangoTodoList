@@ -96,6 +96,7 @@ class EditList extends React.Component {
     super(props);
 
     this.submitNewItem = this.submitNewItem.bind(this);
+    this.deleteItem = this.deleteItem.bind(this);
 
     this.state = {
       username: "",
@@ -123,6 +124,7 @@ class EditList extends React.Component {
 
 
   submitNewItem () {
+    self = this;
     var axios_instance = axios.create({
       headers: {"X-CSRFToken": localStorage.getItem("csrftoken")}
     });
@@ -138,10 +140,42 @@ class EditList extends React.Component {
     ).then(function (response) {
         var message = response.data.message;
         if (message.search("success") != -1) {
-            console.log(":::: response.data.newItem:", JSON.parse(response.data.newItem)[0]);
-
             var temp_items = self.state.items;
             temp_items.push(JSON.parse(response.data.newItem)[0]);
+            self.setState({items: temp_items});
+
+            // reset fields after successfully adding a new item
+            self.newItemTextInput.value = "";
+            self.newItemDoneInput.checked = false;
+            self.newItemDeadlineInput.value = null;
+        }
+      })
+    .catch(function (error) {
+      console.log("ERROR:", error);
+      self.setState({error: "There was an error during the request. Please check the data and try again."});
+    });
+  };
+
+  deleteItem(item_id) {
+    var axios_instance = axios.create({
+      headers: {"X-CSRFToken": localStorage.getItem("csrftoken")}
+    });
+
+    axios_instance.post('/edit_list/' + this.props.params.list_id + '/delete_item/' + item_id + '/',
+      {
+        data: {
+            userId: "1"  // TODO: send user ID/secret/whatever in all requests
+        }
+      }
+    ).then(function (response) {
+        var message = response.data.message;
+        if (message.search("success") != -1) {
+            var temp_items = self.state.items;
+            for (var i = 0; i < self.state.items.length; i++) {
+                if (self.state.items[i].pk == item_id) {
+                    temp_items.splice(i, 1);
+                }
+            }
             self.setState({items: temp_items});
         }
       })
@@ -157,20 +191,16 @@ class EditList extends React.Component {
         for (var i = 0; i < this.state.items.length; i++) {
 
           var item = this.state.items[i];
-          var style = item.done ? {"textDecoration": "line-through"} : {"textDecoration": "inherit"};
-          var deadline = item.done ? " (due on " + item.deadline + ")" : "";
-
-          var delete_path = "/get_list_info/" + this.state.list.pk + "/delete_item/" + item.pk + "/";
-          var done_path = "/get_list_info/" + this.state.list.pk + "/toggle_done/" + item.pk + "/";
-          var done_text = item.done ? "not done" : "done";
-          var edit_path = "/get_list_info/" + this.state.list.pk + "/edit_item/" + item.pk + "/";
+          var style = item.fields.done ? {"textDecoration": "line-through"} : {"textDecoration": "inherit"};
+          var deadline = item.fields.deadline ? " (due on " + item.fields.deadline + ")" : "";
+          var done_text = item.fields.done ? "not done" : "done";
 
           list_items.push(
             <li key={i}>
-                <a style={style}>{item.fields.text}</a>{deadline}
-                <a href={delete_path}>[delete]</a>
-                <a href={done_path}>[mark as {done_text}]</a>
-                <a href={edit_path}>[edit]</a>
+                <a style={style}>{item.fields.text}</a>{deadline}&nbsp;
+                <input type="button" value="delete" onClick={() => this.deleteItem(item.pk)} />&nbsp;
+                <input type="button" value={"mark as " + done_text} />&nbsp;
+                <input type="button" value="edit" />&nbsp;
             </li>);
         }
     }
