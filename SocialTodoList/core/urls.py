@@ -23,6 +23,7 @@ urlpatterns = [
     url(r'^edit_list/(?P<list_id>\d+)/delete_item/(?P<item_id>\d+)/$', views.delete_item_from_list, name='delete_item_from_list'),
     url(r'^edit_list/(?P<list_id>\d+)/toggle_done/(?P<item_id>\d+)/$', views.toggle_item_done_from_list, name='toggle_item_done'),
     url(r'^get_item_info/(?P<item_id>\d+)/$', views.get_item_info, name='get_item_info'),
+    url(r'^edit_list/(?P<list_id>\d+)/edit_item/(?P<item_id>\d+)/edit/$', views.edit_item_from_list, name='edit_item'),
 
     url(r'^.*$', views.show_lists, name="not_found_handler"),
 ]

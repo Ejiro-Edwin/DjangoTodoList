@@ -230,9 +230,42 @@ def toggle_item_done_from_list(request, list_id, item_id):
 
 def get_item_info(request, item_id):
     item = [Item.objects.get(id=item_id)]
-    current_list = [List.objects.get(id=item.list.id)]
+    current_list = [List.objects.get(id=item[0].list.id)]
     data = {
         "item": serializers.serialize('json', item),
         "list": serializers.serialize('json', current_list)
     }
+    return JsonResponse(data, safe=False)
+
+
+def edit_item_from_list(request, list_id, item_id):
+    data = {}
+    try:
+        data = json.loads(request.body.decode())['data']
+        text = data.get("newItemText")
+        if text:
+            current_list = List.objects.get(id=list_id)
+            done = True if data.get("newItemDone") else False
+            deadline = data.get("newItemDeadline")
+
+            item = Item.objects.get(id=item_id)
+            item.text = text;
+            item.done = done;
+            if deadline:
+                item.deadline = datetime.strptime(deadline, '%Y-%m-%d')
+            item.save()
+
+            data = {
+                "item": serializers.serialize('json', [item]),
+                "list": serializers.serialize('json', [current_list])
+            }
+
+            message = "The item {} was edited successfully!".format(item.text)
+        else:
+            raise Exception("Not enough data provided for editing the item.")
+    except Exception as e:
+        print(":::: ERROR:", e)
+        message = "There was an error while trying to edit the item. Please try again."
+
+    data["message"] = message
     return JsonResponse(data, safe=False)
