@@ -168,6 +168,7 @@ class EditList extends React.Component {
       list: null,
       items: [],
       error: "",
+      message: "",
     };
   }
 
@@ -177,7 +178,6 @@ class EditList extends React.Component {
       .then(function (response) {
         if (response.data.items && response.data.list) {
           self.setState({list: JSON.parse(response.data.list), items: JSON.parse(response.data.items)});
-          console.log(":::: this.state.items:", self.state.items);
         } else {
           self.setState({error: "No lists were found."});
         }
@@ -190,6 +190,7 @@ class EditList extends React.Component {
 
   submitNewItem () {
     self = this;
+    self.state.message = "";
     var axios_instance = axios.create({
       headers: {"X-CSRFToken": localStorage.getItem("csrftoken")}
     });
@@ -203,8 +204,8 @@ class EditList extends React.Component {
         }
       }
     ).then(function (response) {
-        var message = response.data.message;
-        if (message.search("success") != -1) {
+        self.setState({message: response.data.message});
+        if (self.state.message.search("success") != -1) {
             var tempItems = self.state.items;
             tempItems.push(JSON.parse(response.data.newItem)[0]);
             self.setState({items: tempItems});
@@ -224,6 +225,7 @@ class EditList extends React.Component {
   deleteItem(e) {
     var item_id = $(e.currentTarget).attr('data-id');
     self = this;
+    self.state.message = "";
     var axios_instance = axios.create({
       headers: {"X-CSRFToken": localStorage.getItem("csrftoken")}
     });
@@ -235,8 +237,8 @@ class EditList extends React.Component {
         }
       }
     ).then(function (response) {
-        var message = response.data.message;
-        if (message.search("success") != -1) {
+        self.setState({message: response.data.message});
+        if (self.state.message.search("success") != -1) {
             var tempItems = self.state.items;
             for (var i = 0; i < self.state.items.length; i++) {
                 if (self.state.items[i].pk == item_id) {
@@ -255,6 +257,7 @@ class EditList extends React.Component {
   toggleDone(e) {
     var item_id = $(e.currentTarget).attr('data-id');
     self = this;
+    self.state.message = "";
     var axios_instance = axios.create({
       headers: {"X-CSRFToken": localStorage.getItem("csrftoken")}
     });
@@ -266,8 +269,8 @@ class EditList extends React.Component {
         }
       }
     ).then(function (response) {
-        var message = response.data.message;
-        if (message.search("success") != -1) {
+        self.setState({message: response.data.message});
+        if (self.state.message.search("success") != -1) {
             var updatedItem = JSON.parse(response.data.updatedItem)[0];
             var tempItems = self.state.items;
             for (var i = 0; i < tempItems.length; i++) {
@@ -339,7 +342,7 @@ class EditList extends React.Component {
 
         <div>
           <br />
-          <p ></p>
+          <p>{this.state.message}</p>
         </div>
       </div>
     );
@@ -359,7 +362,8 @@ class EditItem extends React.Component {
       newItemText: "",
       newItemDeadline: null,
       newItemDone: false,
-      error: ""
+      error: "",
+      message: "",
     };
   }
 
@@ -388,6 +392,7 @@ class EditItem extends React.Component {
 
   submitEditItem() {
     self = this;
+    self.state.message = "";
     var axios_instance = axios.create({
       headers: {"X-CSRFToken": localStorage.getItem("csrftoken")}
     });
@@ -401,8 +406,8 @@ class EditItem extends React.Component {
         }
       }
     ).then(function (response) {
-        var message = response.data.message;
-        if (message.search("success") != -1) {
+        self.setState({message: response.data.message});
+        if (self.state.message.search("success") != -1) {
           self.setState({item: JSON.parse(response.data.item)[0]});
           self.setState({newItemText: self.state.item.fields.text});
           // datetime comes from django in the format YYYY-mm-ddTHH:MM:SS.ffffff
@@ -461,7 +466,7 @@ class EditItem extends React.Component {
 
         <div>
           <br />
-          <p ></p>
+          <p>{this.state.message}</p>
         </div>
       </div>
     );
