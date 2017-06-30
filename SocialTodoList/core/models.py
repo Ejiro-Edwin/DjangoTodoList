@@ -23,4 +23,4 @@ class Item(models.Model):
 
 
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ('text', 'list', 'order', 'done', 'deadline')
+    list_display = ('id', 'text', 'list', 'order', 'done', 'deadline')

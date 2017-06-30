@@ -27,6 +27,9 @@ class ShowLists extends React.Component {
   constructor() {
     super();
 
+    this.submitCreateList = this.submitCreateList.bind(this);
+    this.deleteList = this.deleteList.bind(this);
+
     this.state = {
       username: "",
       lists: [],
@@ -50,12 +53,77 @@ class ShowLists extends React.Component {
     });
   }
 
+  submitCreateList() {
+    self = this;
+    var axios_instance = axios.create({
+      headers: {"X-CSRFToken": localStorage.getItem("csrftoken")}
+    });
+
+    axios_instance.post('/create_list/',
+      {
+        data: {
+            userId: "1",
+            newListName: this.newListNameInput.value,
+        }
+      }
+    ).then(function (response) {
+        var message = response.data.message;
+        if (message.search("success") != -1) {
+            var tempLists = self.state.lists;
+            tempLists.push(JSON.parse(response.data.newList)[0]);
+            self.setState({lists: tempLists});
+
+            // reset field after successfully creating a new list
+            self.newListNameInput.value = "";
+        }
+      })
+    .catch(function (error) {
+      console.log("ERROR:", error);
+      self.setState({error: "There was an error during the request. Please check the data and try again."});
+    });
+  };
+
+  deleteList(list_id) {
+    self = this;
+    var axios_instance = axios.create({
+      headers: {"X-CSRFToken": localStorage.getItem("csrftoken")}
+    });
+
+    axios_instance.post('/delete_list/' + list_id + '/',
+      {
+        data: {
+            userId: "1"  // TODO: send user ID/secret/whatever in all requests
+        }
+      }
+    ).then(function (response) {
+        var message = response.data.message;
+        if (message.search("success") != -1) {
+            var tempLists = self.state.lists;
+            for (var i = 0; i < self.state.lists.length; i++) {
+                if (self.state.lists[i].pk == list_id) {
+                    tempLists.splice(i, 1);
+                }
+            }
+            self.setState({lists: tempLists});
+        }
+      })
+    .catch(function (error) {
+      console.log("ERROR:", error);
+      self.setState({error: "There was an error during the request. Please check the data and try again."});
+    });
+  };
+
   render() {
     var list_items = [];
     if (this.state.lists) {
         for (var i = 0; i < this.state.lists.length; i++) {
           var path = "/edit_list/" + this.state.lists[i].pk + "/";
-          list_items.push(<li key={i}><Link to={path}>{this.state.lists[i].fields.name}</Link></li>);
+          list_items.push(
+                <li key={i}>
+                    <Link to={path}>{this.state.lists[i].fields.name}</Link>&nbsp;
+                    <input type="button" value="delete" onClick={() => this.deleteList(item.pk)} />&nbsp;
+                </li>
+          );
         }
     }
 
@@ -78,13 +146,9 @@ class ShowLists extends React.Component {
           {list_items}
         </ul>
 
-        <p>Create new List</p>
-        <form method="POST" action="/create_list/">
-          <input type="hidden" name="csrfmiddlewaretoken" value={ localStorage.getItem("csrftoken") } />
-          <input type="hidden" name="user_id" value="1" />
-          <input type="text" name="newListName" />
-          <input type="submit" value="Create List" style={{ margin: "5px"}} />
-        </form>
+        <h4>Create new List</h4>
+        <input type="text" name="newListName" ref={(input) => { this.newListNameInput = input; }} />
+        <input type="button" value="Create List" style={{ margin: "5px"}} onClick={this.submitCreateList} />
       </div>
     );
   }
@@ -97,6 +161,7 @@ class EditList extends React.Component {
 
     this.submitNewItem = this.submitNewItem.bind(this);
     this.deleteItem = this.deleteItem.bind(this);
+    this.toggleDone = this.toggleDone.bind(this);
 
     this.state = {
       username: "",
@@ -112,6 +177,7 @@ class EditList extends React.Component {
       .then(function (response) {
         if (response.data.items && response.data.list) {
           self.setState({list: JSON.parse(response.data.list), items: JSON.parse(response.data.items)});
+          console.log(":::: this.state.items:", self.state.items);
         } else {
           self.setState({error: "No lists were found."});
         }
@@ -140,9 +206,9 @@ class EditList extends React.Component {
     ).then(function (response) {
         var message = response.data.message;
         if (message.search("success") != -1) {
-            var temp_items = self.state.items;
-            temp_items.push(JSON.parse(response.data.newItem)[0]);
-            self.setState({items: temp_items});
+            var tempItems = self.state.items;
+            tempItems.push(JSON.parse(response.data.newItem)[0]);
+            self.setState({items: tempItems});
 
             // reset fields after successfully adding a new item
             self.newItemTextInput.value = "";
@@ -157,6 +223,7 @@ class EditList extends React.Component {
   };
 
   deleteItem(item_id) {
+    self = this;
     var axios_instance = axios.create({
       headers: {"X-CSRFToken": localStorage.getItem("csrftoken")}
     });
@@ -170,13 +237,13 @@ class EditList extends React.Component {
     ).then(function (response) {
         var message = response.data.message;
         if (message.search("success") != -1) {
-            var temp_items = self.state.items;
+            var tempItems = self.state.items;
             for (var i = 0; i < self.state.items.length; i++) {
                 if (self.state.items[i].pk == item_id) {
-                    temp_items.splice(i, 1);
+                    tempItems.splice(i, 1);
                 }
             }
-            self.setState({items: temp_items});
+            self.setState({items: tempItems});
         }
       })
     .catch(function (error) {
@@ -185,7 +252,43 @@ class EditList extends React.Component {
     });
   };
 
-  render() {
+  toggleDone(item_id) {
+    console.log(":::: item_id:", item_id);
+    self = this;
+    var axios_instance = axios.create({
+      headers: {"X-CSRFToken": localStorage.getItem("csrftoken")}
+    });
+
+    axios_instance.post('/edit_list/' + this.props.params.list_id + '/toggle_done/' + item_id + '/',
+      {
+        data: {
+            userId: "1"  // TODO: send user ID/secret/whatever in all requests
+        }
+      }
+    ).then(function (response) {
+        var message = response.data.message;
+        if (message.search("success") != -1) {
+            var updatedItem = JSON.parse(response.data.updatedItem)[0];
+            console.log(":::: updatedItem:", updatedItem);
+            var tempItems = self.state.items;
+            for (var i = 0; i < tempItems.length; i++) {
+                if (tempItems[i].pk == updatedItem.pk) {
+                    console.log(":::: i:", i);
+                    console.log(":::: tempItems[i]:", tempItems[i]);
+                    tempItems[i] = updatedItem;
+                    break;
+                }
+            }
+            self.setState({items: tempItems});
+        }
+      })
+    .catch(function (error) {
+      console.log("ERROR:", error);
+      self.setState({error: "There was an error during the request. Please check the data and try again."});
+    });
+  };
+
+  generateListItemsForRendering() {
     var list_items = [];
     if (this.state.items) {
         for (var i = 0; i < this.state.items.length; i++) {
@@ -199,11 +302,16 @@ class EditList extends React.Component {
             <li key={i}>
                 <a style={style}>{item.fields.text}</a>{deadline}&nbsp;
                 <input type="button" value="delete" onClick={() => this.deleteItem(item.pk)} />&nbsp;
-                <input type="button" value={"mark as " + done_text} />&nbsp;
+                <input type="button" value={"mark as " + done_text} onClick={() => this.toggleDone(item.pk)} />&nbsp;
                 <input type="button" value="edit" />&nbsp;
             </li>);
         }
     }
+    return list_items;
+  };
+
+  render() {
+    var list_items = this.generateListItemsForRendering();
 
     var list_name = this.state.list ? this.state.list[0].fields.name : "";
 
@@ -226,7 +334,7 @@ class EditList extends React.Component {
           {list_items}
         </ul>
 
-        <p>Add new Item to List</p>
+        <h4>Add new Item to List</h4>
         Text: <input type="text" name="newItemText" ref={(input) => { this.newItemTextInput = input; }} /> <br/>
         Deadline: <input type="date" name="newItemDeadline" ref={(input) => { this.newItemDeadlineInput = input }} /> <br/>
         Done: <input type="checkbox" name="newItemDone" ref={(input) => { this.newItemDoneInput = input }} /> <br/>

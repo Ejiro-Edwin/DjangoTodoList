@@ -125,18 +125,24 @@ def get_all_lists(request):
 
 
 def create_new_list(request):
-    message = ""
+    data = None
     try:
-        user = User.objects.get(username="admin")  # TODO: change to the actual user's ID from request
-        new_list = List(name=request.POST.get("newListName"), owner=user)
-        new_list.save()
+        data = json.loads(request.body.decode())['data']
+        name = data.get("newListName")
+        if name:
+            user = User.objects.get(username="admin")  # TODO: change to the actual user's ID from request
+            new_list = List(name=name, owner=user)
+            new_list.save()
 
-        message = "The list {} was created successfully!".format(new_list.name)
+            data = serializers.serialize('json', [new_list])
+            message = "The list {} was created successfully!".format(new_list.name)
+        else:
+            raise Exception("Not enough data provided for creating the list.")
     except Exception as e:
         print(":::: ERROR:", e)
         message = "There was an error while trying to create the list. Please try again."
 
-    return JsonResponse({"message": message})
+    return JsonResponse({"message": message, "newList": data})
 
 
 def get_list_info(request, list_id):
@@ -150,7 +156,6 @@ def get_list_info(request, list_id):
 
 
 def add_item_to_list(request, list_id):
-    message = ""  #noqa
     data = None
     try:
         data = json.loads(request.body.decode())['data']
@@ -176,7 +181,6 @@ def add_item_to_list(request, list_id):
 
 
 def delete_item_from_list(request, list_id, item_id):
-    message = ""  # noqa
     try:
         data = json.loads(request.body.decode())['data']
         user_id = data.get("userId")
@@ -190,3 +194,19 @@ def delete_item_from_list(request, list_id, item_id):
         message = "There was an error while trying to delete the item. Please try again."
 
     return JsonResponse({"message": message})
+
+
+def toggle_item_done_from_list(request, list_id, item_id):
+    data = None
+    try:
+        item = Item.objects.get(id=item_id)
+        item.done = True if not item.done else False
+        item.save()
+
+        data = serializers.serialize('json', [item])
+        message = "The item {} was successfully marked as {}!".format(item.text, "done" if item.done else "not done")
+    except Exception as e:
+        print(":::: ERROR:", e)
+        message = "There was an error while trying to edit the item. Please try again."
+
+    return JsonResponse({"message": message, "updatedItem": data})
