@@ -1,3 +1,6 @@
+from datetime import datetime
+import json
+
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core import serializers
@@ -121,6 +124,21 @@ def get_all_lists(request):
     return JsonResponse(data, safe=False)
 
 
+def create_new_list(request):
+    message = ""
+    try:
+        user = User.objects.get(username="admin")  # TODO: change to the actual user's ID from request
+        new_list = List(name=request.POST.get("newListName"), owner=user)
+        new_list.save()
+
+        message = "The list {} was created successfully!".format(new_list.name)
+    except Exception as e:
+        print(":::: ERROR:", e)
+        message = "There was an error while trying to create the list. Please try again."
+
+    return JsonResponse({"message": message})
+
+
 def get_list_info(request, list_id):
     current_list = [List.objects.get(id=list_id)]
     items = Item.objects.filter(list__id=list_id).order_by('order')
@@ -129,3 +147,34 @@ def get_list_info(request, list_id):
         "list": serializers.serialize('json', current_list)
     }
     return JsonResponse(data, safe=False)
+
+
+def add_item_to_list(request, list_id):
+    message = ""  #noqa
+    data = None
+    try:
+        data = json.loads(request.body.decode())['data']
+        text = data.get("newItemText")
+        if text:
+            current_list = List.objects.get(id=list_id)
+            done = True if data.get("newItemDone") else False
+            new_item = Item(list=current_list, text=text, order=0, done=done)
+            deadline = data.get("newItemDeadline")
+            if deadline:
+                if len(deadline) <= 10:
+                    deadline += ' 00:00:00.000000'
+
+                deadline = datetime.strptime(deadline, '%Y-%m-%d %H:%M:%S.%f')
+                new_item.deadline = deadline
+            new_item.save()
+
+            data = serializers.serialize('json', [new_item])
+
+            message = "The item {} was added successfully!".format(new_item.text)
+        else:
+            raise Exception("Not enough data provided for creating the item.")
+    except Exception as e:
+        print(":::: ERROR:", e)
+        message = "There was an error while trying to add the item. Please try again."
+
+    return JsonResponse({"message": message, "newItem": data})

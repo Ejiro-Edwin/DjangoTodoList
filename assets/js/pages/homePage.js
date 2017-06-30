@@ -92,8 +92,10 @@ class ShowLists extends React.Component {
 
 
 class EditList extends React.Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
+
+    this.submitNewItem = this.submitNewItem.bind(this);
 
     this.state = {
       username: "",
@@ -119,13 +121,43 @@ class EditList extends React.Component {
     });
   }
 
+
+  submitNewItem () {
+    var axios_instance = axios.create({
+      headers: {"X-CSRFToken": localStorage.getItem("csrftoken")}
+    });
+
+    axios_instance.post('/edit_list/' + this.props.params.list_id + '/add_item/',
+      {
+        data: {
+            newItemText: this.newItemTextInput.value,
+            newItemDone: this.newItemDoneInput.checked,
+            newItemDeadline: this.newItemDeadlineInput.value
+        }
+      }
+    ).then(function (response) {
+        var message = response.data.message;
+        if (message.search("success") != -1) {
+            console.log(":::: response.data.newItem:", JSON.parse(response.data.newItem)[0]);
+
+            var temp_items = self.state.items;
+            temp_items.push(JSON.parse(response.data.newItem)[0]);
+            self.setState({items: temp_items});
+        }
+      })
+    .catch(function (error) {
+      console.log("ERROR:", error);
+      self.setState({error: "There was an error during the request. Please check the data and try again."});
+    });
+  };
+
   render() {
     var list_items = [];
     if (this.state.items) {
         for (var i = 0; i < this.state.items.length; i++) {
 
           var item = this.state.items[i];
-          var style = item.done? {"textDecoration": "line-through"} : {"textDecoration": "inherit"};
+          var style = item.done ? {"textDecoration": "line-through"} : {"textDecoration": "inherit"};
           var deadline = item.done ? " (due on " + item.deadline + ")" : "";
 
           var delete_path = "/get_list_info/" + this.state.list.pk + "/delete_item/" + item.pk + "/";
@@ -165,35 +197,18 @@ class EditList extends React.Component {
         </ul>
 
         <p>Add new Item to List</p>
-        <form method="POST" action="/add_item/">
-          <input type="hidden" name="csrfmiddlewaretoken" value={ localStorage.getItem("csrftoken") } />
-          Text: <input type="text" name="newItemText" /> <br/>
-          Deadline: <input type="date" name="newItemDeadline" /> <br/>
-          Done: <input type="checkbox" name="newItemDone" /> <br/>
-          <input type="submit" value="Add Item" style={{ margin: "5px"}} />
-        </form>
+        Text: <input type="text" name="newItemText" ref={(input) => { this.newItemTextInput = input; }} /> <br/>
+        Deadline: <input type="date" name="newItemDeadline" ref={(input) => { this.newItemDeadlineInput = input }} /> <br/>
+        Done: <input type="checkbox" name="newItemDone" ref={(input) => { this.newItemDoneInput = input }} /> <br/>
+        <input type="button" value="Add Item" style={{ margin: "5px"}} onClick={this.submitNewItem} />
+
+        <div>
+          <br />
+          <p ></p>
+        </div>
       </div>
     );
   }
-}
-
-function FilterResults(props) {
-  return (
-    <div>
-      <h3>Tweets Filtered:</h3>
-      <select name="filteredTweets" style={{ minWidth: "20%", maxWidth: "95%" }} size="10">
-        {
-          props.results.data ?
-          props.results.data.map(function(result) {
-            return <option key={result.provider_id} value={result.provider_id} style={{ padding: "6px" }}>
-              @{result.owner} said: {result.text}
-            </option>;
-          }) :
-          console.log()
-        }
-      </select>
-    </div>
-  );
 }
 
 class App extends React.Component {
