@@ -22,7 +22,6 @@ class Home extends React.Component {
   }
 }
 
-
 class ShowLists extends React.Component {
   constructor() {
     super();
@@ -83,7 +82,8 @@ class ShowLists extends React.Component {
     });
   };
 
-  deleteList(list_id) {
+  deleteList(e) {
+    var list_id = $(e.currentTarget).attr('data-id');
     self = this;
     var axios_instance = axios.create({
       headers: {"X-CSRFToken": localStorage.getItem("csrftoken")}
@@ -122,7 +122,7 @@ class ShowLists extends React.Component {
           list_items.push(
             <li key={i}>
               <Link to={path}>{this.state.lists[i].fields.name}</Link>&nbsp;
-              <input type="button" value="delete" onClick={() => this.deleteList(list_id)} />&nbsp;
+              <input type="button" data-id={list_id} value="delete" onClick={this.deleteList} />&nbsp;
             </li>
           );
         }
@@ -154,7 +154,6 @@ class ShowLists extends React.Component {
     );
   }
 }
-
 
 class EditList extends React.Component {
   constructor(props) {
@@ -189,7 +188,6 @@ class EditList extends React.Component {
     });
   }
 
-
   submitNewItem () {
     self = this;
     var axios_instance = axios.create({
@@ -223,7 +221,8 @@ class EditList extends React.Component {
     });
   };
 
-  deleteItem(item_id) {
+  deleteItem(e) {
+    var item_id = $(e.currentTarget).attr('data-id');
     self = this;
     var axios_instance = axios.create({
       headers: {"X-CSRFToken": localStorage.getItem("csrftoken")}
@@ -253,8 +252,8 @@ class EditList extends React.Component {
     });
   };
 
-  toggleDone(item_id) {
-    console.log(":::: item_id:", item_id);
+  toggleDone(e) {
+    var item_id = $(e.currentTarget).attr('data-id');
     self = this;
     var axios_instance = axios.create({
       headers: {"X-CSRFToken": localStorage.getItem("csrftoken")}
@@ -270,12 +269,9 @@ class EditList extends React.Component {
         var message = response.data.message;
         if (message.search("success") != -1) {
             var updatedItem = JSON.parse(response.data.updatedItem)[0];
-            console.log(":::: updatedItem:", updatedItem);
             var tempItems = self.state.items;
             for (var i = 0; i < tempItems.length; i++) {
                 if (tempItems[i].pk == updatedItem.pk) {
-                    console.log(":::: i:", i);
-                    console.log(":::: tempItems[i]:", tempItems[i]);
                     tempItems[i] = updatedItem;
                     break;
                 }
@@ -298,13 +294,14 @@ class EditList extends React.Component {
           var style = item.fields.done ? {"textDecoration": "line-through"} : {"textDecoration": "inherit"};
           var deadline = item.fields.deadline ? " (due on " + item.fields.deadline + ")" : "";
           var done_text = item.fields.done ? "not done" : "done";
+          var path = "/edit_list/" + this.state.list[0].pk + "/edit_item/" + item.pk + "/";
 
           list_items.push(
             <li key={i}>
-                <a style={style}>{item.fields.text}</a>{deadline}&nbsp;
-                <input type="button" value="delete" onClick={() => this.deleteItem(item.pk)} />&nbsp;
-                <input type="button" value={"mark as " + done_text} onClick={() => this.toggleDone(item.pk)} />&nbsp;
-                <input type="button" value="edit" />&nbsp;
+                <Link to={path}><a style={style}>{item.fields.text}</a>{deadline}</Link>&nbsp;
+                <input type="button" data-id={item.pk} value="delete" onClick={this.deleteItem} />&nbsp;
+                <input type="button" data-id={item.pk} value={"mark as " + done_text} onClick={this.toggleDone} />&nbsp;
+                <input type="button" data-id={item.pk} value="edit" />&nbsp;
             </li>);
         }
     }
@@ -350,6 +347,74 @@ class EditList extends React.Component {
   }
 }
 
+class EditItem extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.submitEditItem = this.submitEditItem.bind(this);
+
+    this.state = {
+      list: null,
+      item: null,
+      error: ""
+    };
+  }
+
+  componentDidMount() {
+    self = this;
+    axios.get('/get_item_info/' + this.props.params.item_id + '/')
+      .then(function (response) {
+        console.log(":::: RESPONSE:", response);
+        if (response.data.item) {
+          self.setState({item: JSON.parse(response.data.item)[0]});
+          console.log(":::: this.state.item:", self.state.item);
+          self.setState({list: JSON.parse(self.state.list)[0]});
+          console.log(":::: this.state.list:", self.state.list);
+        } else {
+          self.setState({error: "Item not found."});
+        }
+      })
+    .catch(function (error) {
+      console.log("ERROR:", error);
+      self.setState({error: "There was an error during the request. Please check the data and try again."});
+    });
+  }
+
+  submitEditItem() {
+
+  };
+
+  render() {
+    // var list_name = this.state.list ? this.state.list.fields.name : "";
+    var list_name = "";
+    if (this.state.list) {
+      var return_path = "/edit_list/" + this.state.list.pk + "/";
+    } else {
+      var return_path = "/all/";
+    }
+
+    return (
+      <div>
+        <h4><Link to={return_path}>Back to {list_name}</Link></h4>
+        <h2>Item Details - Edit Item</h2>
+        <br />
+        { !this.state.item ? <p style={{ color: "red", fontWeight: "bold" }}><i>Item information not found.</i></p> : <a></a> }
+        { this.state.error ? <p style={{ color: "red", fontWeight: "bold" }}><i>There was an error, please try again.</i></p> : <a></a> }
+
+        Text: <input type="text" name="newItemText" ref={(input) => { this.newItemTextInput = input; }} /> <br/>
+        Deadline: <input type="date" name="newItemDeadline" ref={(input) => { this.newItemDeadlineInput = input }} /> <br/>
+        Done: <input type="checkbox" name="newItemDone" ref={(input) => { this.newItemDoneInput = input }} /> <br/>
+        <input type="button" value="Edit Item" style={{ margin: "5px"}} onClick={this.submitEditItem} />
+
+        <div>
+          <br />
+          <p ></p>
+        </div>
+      </div>
+    );
+  }
+}
+
 class App extends React.Component {
   render() {
     return (
@@ -374,6 +439,7 @@ ReactDOM.render(
       <IndexRoute component={Home} />
       <Route path="all" component={ShowLists} />
       <Route path="edit_list/:list_id" component={EditList} />
+      <Route path="edit_list/:list_id/edit_item/:item_id" component={EditItem} />
     </Route>
   </Router>,
   document.getElementById('react-app')

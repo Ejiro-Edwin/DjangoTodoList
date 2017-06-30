@@ -145,6 +145,22 @@ def create_new_list(request):
     return JsonResponse({"message": message, "newList": data})
 
 
+def delete_list(request, list_id):
+    try:
+        data = json.loads(request.body.decode())['data']
+        user_id = data.get("userId")
+
+        current_list = List.objects.get(id=list_id)
+        current_list.delete()
+
+        message = "The list {} was deleted successfully!".format(current_list.name)
+    except Exception as e:
+        print(":::: ERROR:", e)
+        message = "There was an error while trying to delete the list. Please try again."
+
+    return JsonResponse({"message": message})
+
+
 def get_list_info(request, list_id):
     current_list = [List.objects.get(id=list_id)]
     items = Item.objects.filter(list__id=list_id).order_by('order')
@@ -210,3 +226,13 @@ def toggle_item_done_from_list(request, list_id, item_id):
         message = "There was an error while trying to edit the item. Please try again."
 
     return JsonResponse({"message": message, "updatedItem": data})
+
+
+def get_item_info(request, item_id):
+    item = [Item.objects.get(id=item_id)]
+    current_list = [List.objects.get(id=item.list.id)]
+    data = {
+        "item": serializers.serialize('json', item),
+        "list": serializers.serialize('json', current_list)
+    }
+    return JsonResponse(data, safe=False)
