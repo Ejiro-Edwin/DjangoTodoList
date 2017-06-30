@@ -117,12 +117,13 @@ class ShowLists extends React.Component {
     var list_items = [];
     if (this.state.lists) {
         for (var i = 0; i < this.state.lists.length; i++) {
-          var path = "/edit_list/" + this.state.lists[i].pk + "/";
+          var list_id = this.state.lists[i].pk;
+          var path = "/edit_list/" + list_id + "/";
           list_items.push(
-                <li key={i}>
-                    <Link to={path}>{this.state.lists[i].fields.name}</Link>&nbsp;
-                    <input type="button" value="delete" onClick={() => this.deleteList(item.pk)} />&nbsp;
-                </li>
+            <li key={i}>
+              <Link to={path}>{this.state.lists[i].fields.name}</Link>&nbsp;
+              <input type="button" value="delete" onClick={() => this.deleteList(list_id)} />&nbsp;
+            </li>
           );
         }
     }
