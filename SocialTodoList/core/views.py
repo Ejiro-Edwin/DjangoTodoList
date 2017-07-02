@@ -2,6 +2,7 @@ from datetime import datetime
 import json
 
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core import serializers
 from django.http import HttpResponseRedirect
@@ -12,6 +13,7 @@ from django.urls import reverse
 from .models import Item, List
 
 
+@login_required
 def show_lists(request):
     lists = List.objects.all()
     payload = {
