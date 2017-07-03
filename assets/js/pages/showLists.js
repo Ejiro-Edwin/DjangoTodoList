@@ -41,7 +41,6 @@ class ShowLists extends React.Component {
     axios_instance.post('/create_list/',
       {
         data: {
-            userId: "1",
             newListName: this.newListNameInput.value,
         }
       }
@@ -98,7 +97,7 @@ class ShowLists extends React.Component {
     if (this.state.lists) {
         for (var i = 0; i < this.state.lists.length; i++) {
           var list_id = this.state.lists[i].pk;
-          var path = "/edit_list/" + list_id + "/";
+          var path = "/lists/edit_list/" + list_id + "/";
           list_items.push(
             <li key={i}>
               <Link to={path}>{this.state.lists[i].fields.name}</Link>&nbsp;

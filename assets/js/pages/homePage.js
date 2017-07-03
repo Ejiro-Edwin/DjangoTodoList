@@ -28,10 +28,9 @@ class App extends React.Component {
       <div>
         <h1>Social ToDo List</h1>
         <ul className="header">
-          <li><Link activeClassName="active" to="/">Home</Link></li>
-          <li><Link activeClassName="active" to="/all/">See and Create Lists</Link></li>
-//          <li><Link activeClassName="active" to="/disconnect/twitter/">Logout</Link></li>
-          <li><a href="/disconnect/twitter/">Logout</a></li>
+          <li><Link activeClassName="active" to="/lists">Home</Link></li>
+          <li><Link activeClassName="active" to="/lists/all/">See and Create Lists</Link></li>
+          <li><a href="/logout/">Logout</a></li>
         </ul>
         <div className="content">
           {this.props.children}
@@ -43,12 +42,13 @@ class App extends React.Component {
 
 ReactDOM.render(
   <Router history={browserHistory}>
-    <Route path="/" component={App}>
+    <Route path="/lists" component={App}>
       <IndexRoute component={Home} />
       <Route path="all" component={ShowLists} />
       <Route path="edit_list/:list_id" component={EditList} />
       <Route path="edit_list/:list_id/edit_item/:item_id" component={EditItem} />
     </Route>
+
   </Router>,
   document.getElementById('react-app')
 );

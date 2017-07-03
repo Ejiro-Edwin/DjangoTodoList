@@ -143,9 +143,16 @@ class EditList extends React.Component {
 
           var item = this.state.items[i];
           var style = item.fields.done ? {"textDecoration": "line-through"} : {"textDecoration": "inherit"};
-          var deadline = item.fields.deadline ? " (due on " + item.fields.deadline + ")" : "";
+
+          var deadline = ""
+          if (item.fields.deadline) {
+            var pattern = /\d{4}-\d{2}-\d{2}/
+            deadline = pattern.exec(item.fields.deadline)
+          }
+
+          deadline = deadline ? " (due on " + deadline + ")" : "";
           var done_text = item.fields.done ? "not done" : "done";
-          var path = "/edit_list/" + this.state.list[0].pk + "/edit_item/" + item.pk + "/";
+          var path = "/lists/edit_list/" + this.state.list[0].pk + "/edit_item/" + item.pk + "/";
 
           list_items.push(
             <li key={i}>

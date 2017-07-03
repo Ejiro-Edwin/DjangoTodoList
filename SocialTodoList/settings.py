@@ -86,8 +86,9 @@ WSGI_APPLICATION = 'SocialTodoList.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
-default_dburl = 'sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3')
+# default_dburl = 'sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3')
 
+default_dburl = "postgres://lucalabcodes:labcodes@localhost/socialtodolist"
 DATABASES = {
     'default': config('DATABASE_URL', default=default_dburl, cast=dburl)
 }
@@ -131,6 +132,7 @@ USE_TZ = False
 
 STATIC_URL = '/static/'
 
+
 def base_dir_join(*args):
     return os.path.join(BASE_DIR, *args)
 
@@ -155,11 +157,12 @@ WEBPACK_LOADER = {
 # social auth app django
 AUTHENTICATION_BACKENDS = (
     'social_core.backends.twitter.TwitterOAuth',
+
     'django.contrib.auth.backends.ModelBackend',
 )
 LOGIN_URL = 'login'
 LOGOUT_URL = 'logout'
-LOGIN_REDIRECT_URL = 'core:show_lists'
+LOGIN_REDIRECT_URL = 'core:react_index'
 
 SOCIAL_AUTH_TWITTER_KEY = config('SOCIAL_AUTH_TWITTER_KEY')
 SOCIAL_AUTH_TWITTER_SECRET = config('SOCIAL_AUTH_TWITTER_SECRET')

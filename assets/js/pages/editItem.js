@@ -91,9 +91,9 @@ class EditItem extends React.Component {
   render() {
      var list_name = this.state.list ? this.state.list.fields.name : "";
     if (this.state.list) {
-      var return_path = "/edit_list/" + this.state.list.pk + "/";
+      var return_path = "/lists/edit_list/" + this.state.list.pk + "/";
     } else {
-      var return_path = "/all/";
+      var return_path = "/lists/all/";
     }
 
     var itemText = this.state.item ? this.state.item.fields.text : "";
