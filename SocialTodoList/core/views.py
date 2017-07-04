@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
 
+import tweepy
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -10,7 +11,9 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from social_django.models import UserSocialAuth
+from tweepy import TweepError
 
+from SocialTodoList import settings
 from .models import Item, List
 
 
@@ -224,6 +227,67 @@ def edit_item_from_list(request, list_id, item_id):
 
     data["message"] = message
     return JsonResponse(data, safe=False)
+
+@login_required
+def post_item_to_twitter(request):
+    data = {}
+    try:
+        data = json.loads(request.body.decode())['data']
+        item_id = data.get("itemId")
+        list_id = data.get("listId")
+        if item_id:
+            user = User.objects.get(username=request.user.get_username())
+            current_list = List.objects.get(id=list_id)
+
+            if current_list and current_list.owner != user:
+                raise Exception("Error: The requested list does not belong to the logged in user.")
+
+            item = Item.objects.get(id=item_id)
+            # post to twitter
+            user_obj = UserSocialAuth.objects.get(user_id=request.user.id)
+            tweepy_handler = generate_tweepy_handler(user_obj.extra_data['access_token']['oauth_token'],
+                                                     user_obj.extra_data['access_token']['oauth_token_secret'])
+
+            response = tweepy_handler.update_status(status="Yes! Task finished: {}".format(item.text))
+            screen_name = response.user.screen_name
+            status_id = response.id
+            link = "https://twitter.com/{}/status/{}".format(screen_name, status_id)
+
+            message = "The item {} was post successfully to Twitter! Here's your link: {}".format(item.text, link)
+        else:
+            raise Exception("Not enough data provided for posting to Twitter.")
+    except TweepError as err:
+        print(":::: ERROR:", err)
+        if err.args and err.args[0]:
+            error = err.args[0][0].get("message")
+            message = "There was an error while trying to post to Twitter: {} Please try again.".format(error)
+        else:
+            message = "There was an error while trying to post to Twitter: {}. " \
+                      "Please try again.".format(err.response.status_code)
+    except Exception as e:
+        print(":::: ERROR:", e)
+        message = "There was an error while trying to post to Twitter. Please try again."
+
+    data["message"] = message
+    return JsonResponse(data, safe=False)
+
+
+def generate_tweepy_handler(user_access_token, user_access_token_secret):
+    """
+    Generate handler object to use Tweepy's methods.
+    :param user_access_token: The access token obtained from the signin process.
+    :param user_access_token_secret: The access token secret.
+    :return: The API handler.
+    """
+    consumer_key = settings.SOCIAL_AUTH_TWITTER_KEY
+    consumer_secret = settings.SOCIAL_AUTH_TWITTER_SECRET
+    access_key = user_access_token
+    access_secret = user_access_token_secret
+    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_key, access_secret)
+    handler = tweepy.API(auth)
+
+    return handler
 
 
 # --------------------------- #

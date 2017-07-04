@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Link } from 'react-router';
 
 
+
 class EditList extends React.Component {
   constructor(props) {
     super(props);
@@ -10,6 +11,7 @@ class EditList extends React.Component {
     this.submitNewItem = this.submitNewItem.bind(this);
     this.deleteItem = this.deleteItem.bind(this);
     this.toggleDone = this.toggleDone.bind(this);
+    this.postToTwitter = this.postToTwitter.bind(this);
 
     this.state = {
       username: "",
@@ -110,12 +112,7 @@ class EditList extends React.Component {
       headers: {"X-CSRFToken": localStorage.getItem("csrftoken")}
     });
 
-    axios_instance.post('/edit_list/' + this.props.params.list_id + '/toggle_done/' + item_id + '/',
-      {
-        data: {
-            userId: "1"  // TODO: send user ID/secret/whatever in all requests
-        }
-      }
+    axios_instance.post('/edit_list/' + this.props.params.list_id + '/toggle_done/' + item_id + '/', {}
     ).then(function (response) {
         self.setState({message: response.data.message});
         if (self.state.message.search("success") != -1) {
@@ -129,6 +126,30 @@ class EditList extends React.Component {
             }
             self.setState({items: tempItems});
         }
+      })
+    .catch(function (error) {
+      console.log("ERROR:", error);
+      self.setState({error: "There was an error during the request. Please check the data and try again."});
+    });
+  };
+
+  postToTwitter(e) {
+    var item_id = $(e.currentTarget).attr('data-id');
+    self = this;
+    self.state.message = "";
+    var axios_instance = axios.create({
+      headers: {"X-CSRFToken": localStorage.getItem("csrftoken")}
+    });
+
+    axios_instance.post('/post_to_twitter/',
+      {
+        data: {
+            itemId: item_id,
+            listId: self.props.params.list_id
+        }
+      }
+    ).then(function (response) {
+        self.setState({message: response.data.message});
       })
     .catch(function (error) {
       console.log("ERROR:", error);
@@ -159,6 +180,7 @@ class EditList extends React.Component {
                 <Link to={path}><a style={style}>{item.fields.text}</a>{deadline}</Link>&nbsp;
                 <input type="button" data-id={item.pk} value="delete" onClick={this.deleteItem} />&nbsp;
                 <input type="button" data-id={item.pk} value={"mark as " + done_text} onClick={this.toggleDone} />&nbsp;
+                <input type="button" data-id={item.pk} value={"post to Twitter"} onClick={this.postToTwitter} />&nbsp;
             </li>);
         }
     }
