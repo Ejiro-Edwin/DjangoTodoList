@@ -228,6 +228,34 @@ def edit_item_from_list(request, list_id, item_id):
     data["message"] = message
     return JsonResponse(data, safe=False)
 
+
+@login_required
+def reorder_items(request, list_id):
+    try:
+        data = json.loads(request.body.decode())['data']
+        items = data.get("items")
+        if items:
+            user = User.objects.get(username=request.user.get_username())
+            current_list = List.objects.get(id=list_id)
+
+            if current_list and current_list.owner != user:
+                raise Exception("Error: The requested list does not belong to the logged in user.")
+
+            for i, item in enumerate(items):
+                db_item = Item.objects.get(id=item.get("pk"))
+                db_item.order = i
+                db_item.save()
+
+            message = "The items were reordered successfully!"
+        else:
+            raise Exception("Not enough data provided for creating the item.")
+    except Exception as e:
+        print(":::: ERROR:", e)
+        message = "There was an error while trying to reorder the items. Please REFRESH THE PAGE and try again."
+
+    return JsonResponse({"message": message})
+
+
 @login_required
 def post_item_to_twitter(request):
     data = {}

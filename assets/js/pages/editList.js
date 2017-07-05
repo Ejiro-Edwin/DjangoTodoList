@@ -1,12 +1,56 @@
 import React from 'react';
+import {render} from 'react-dom';
 import axios from 'axios';
 import { Link } from 'react-router';
+import { SortableContainer, SortableElement, SortableHandle, arrayMove, } from 'react-sortable-hoc';
 
+
+const DragHandle = SortableHandle(() => <span><b>&nbsp;[::]&nbsp;</b></span>);
+
+const SortableItem = SortableElement(({self, index, item, style, deadline, done_text, path}) => {
+  return (
+    <li key={index}>
+      <DragHandle />
+      <Link to={path}><a style={style}>{item.fields.text}</a>{deadline}</Link>&nbsp;
+      <input type="button" data-id={item.pk} value="delete" onClick={self.deleteItem} />&nbsp;
+      <input type="button" data-id={item.pk} value={"mark as " + done_text} onClick={self.toggleDone} />&nbsp;
+      <input type="button" data-id={item.pk} value={"post to Twitter"} onClick={self.postToTwitter} />&nbsp;
+    </li>
+  );
+});
+
+const SortableList = SortableContainer(({self, items, list}) => {
+  var list_items = [];
+
+  if (items) {
+    for (var i = 0; i < items.length; i++) {
+
+      var item = items[i];
+      var style = item.fields.done ? {"textDecoration": "line-through"} : {"textDecoration": "inherit"};
+
+      var deadline = ""
+      if (item.fields.deadline) {
+        var pattern = /\d{4}-\d{2}-\d{2}/
+        deadline = pattern.exec(item.fields.deadline)
+      }
+
+      deadline = deadline ? " (due on " + deadline + ")" : "";
+      var done_text = item.fields.done ? "not done" : "done";
+      var path = "/lists/edit_list/" + list[0].pk + "/edit_item/" + item.pk + "/";
+
+      list_items.push(<SortableItem key={`item-${i}`} self={self} index={i} item={item} style={style} deadline={deadline} done_text={done_text} path={path} />);
+    }
+  }
+
+  return (<ul>{list_items}</ul>);
+});
 
 
 class EditList extends React.Component {
   constructor(props) {
     super(props);
+
+    this.onSortEnd = this.onSortEnd.bind(this);
 
     this.submitNewItem = this.submitNewItem.bind(this);
     this.deleteItem = this.deleteItem.bind(this);
@@ -37,6 +81,35 @@ class EditList extends React.Component {
       self.setState({error: "There was an error during the request. Please check the data and try again."});
     });
   }
+
+  componentDidUpdate(prevProps, prevState) {
+    // only do this is there was a previous state
+    if (prevState.items.length > 0 && prevState.items != this.state.items) {
+      self = this;
+      self.state.message = "";
+      var axios_instance = axios.create({
+        headers: {"X-CSRFToken": localStorage.getItem("csrftoken")}
+      });
+
+      axios_instance.post('/edit_list/' + this.props.params.list_id + '/reorder_items/',
+        {
+          data: { items: self.state.items }
+        }
+      ).then(function (response) {
+          self.setState({message: response.data.message});
+      }).catch(function (error) {
+        console.log("ERROR:", error);
+        self.setState({error: "There was an error during the request. Please check the data and try again."});
+      });
+    }
+  };
+
+  onSortEnd ({oldIndex, newIndex}) {
+    let {items} = this.state;
+    this.setState({
+      items: arrayMove(items, oldIndex, newIndex),
+    });
+  };
 
   submitNewItem () {
     self = this;
@@ -157,42 +230,14 @@ class EditList extends React.Component {
     });
   };
 
-  generateListItemsForRendering() {
-    var list_items = [];
-    if (this.state.items) {
-        for (var i = 0; i < this.state.items.length; i++) {
-
-          var item = this.state.items[i];
-          var style = item.fields.done ? {"textDecoration": "line-through"} : {"textDecoration": "inherit"};
-
-          var deadline = ""
-          if (item.fields.deadline) {
-            var pattern = /\d{4}-\d{2}-\d{2}/
-            deadline = pattern.exec(item.fields.deadline)
-          }
-
-          deadline = deadline ? " (due on " + deadline + ")" : "";
-          var done_text = item.fields.done ? "not done" : "done";
-          var path = "/lists/edit_list/" + this.state.list[0].pk + "/edit_item/" + item.pk + "/";
-
-          list_items.push(
-            <li key={i}>
-                <Link to={path}><a style={style}>{item.fields.text}</a>{deadline}</Link>&nbsp;
-                <input type="button" data-id={item.pk} value="delete" onClick={this.deleteItem} />&nbsp;
-                <input type="button" data-id={item.pk} value={"mark as " + done_text} onClick={this.toggleDone} />&nbsp;
-                <input type="button" data-id={item.pk} value={"post to Twitter"} onClick={this.postToTwitter} />&nbsp;
-            </li>);
-        }
-    }
-    return list_items;
-  };
-
   render() {
-    var list_items = this.generateListItemsForRendering();
-
     var list_name = this.state.list ? this.state.list[0].fields.name : "";
 
     var labelStyle = {"width": "100px", "float": "left"};
+
+    let {items} = this.state;
+
+    self = this;
 
     return (
       <div>
@@ -208,10 +253,8 @@ class EditList extends React.Component {
           <p style={{ color: "red", fontWeight: "bold" }}><i>There was an error, please try again.</i></p> :
           <a></a>
         }
-
-        <ul>
-          {list_items}
-        </ul>
+        <h6>Drag the items by the handle (<span><b>&nbsp;[::]&nbsp;</b></span>) to reorder them.</h6>
+        <SortableList self={self} items={items} list={this.state.list} onSortEnd={this.onSortEnd} useDragHandle={true} />
 
         <br /><br />
         <h4>Add new Item to List</h4>
