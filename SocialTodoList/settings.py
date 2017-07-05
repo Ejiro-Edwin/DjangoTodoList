@@ -147,7 +147,7 @@ STATICFILES_DIRS = (
 # Webpack
 WEBPACK_LOADER = {
     'DEFAULT': {
-        'CACHE': False,  # on DEBUG should be False
+        'CACHE': False if DEBUG else True,  # on DEBUG should be False
         'STATS_FILE': base_dir_join('webpack-stats.json'),
         'POLL_INTERVAL': 0.1,
         'IGNORE': ['.+\.hot-update.js', '.+\.map']
