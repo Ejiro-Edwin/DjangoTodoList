@@ -30,7 +30,8 @@ class EditItem extends React.Component {
           self.setState({newItemText: self.state.item.fields.text});
           // datetime comes from django in the format YYYY-mm-ddTHH:MM:SS.ffffff
           var pattern = /\d{4}-\d{2}-\d{2}/
-          var deadline = pattern.exec(self.state.item.fields.deadline)[0];
+          var deadline = pattern.exec(self.state.item.fields.deadline);
+          deadline = deadline ? deadline[0] : "";
           self.setState({newItemDeadline: deadline});
           self.setState({newItemDone: self.state.item.fields.done});
           self.setState({list: JSON.parse(response.data.list)[0]});
@@ -66,7 +67,8 @@ class EditItem extends React.Component {
           self.setState({newItemText: self.state.item.fields.text});
           // datetime comes from django in the format YYYY-mm-ddTHH:MM:SS.ffffff
           var pattern = /\d{4}-\d{2}-\d{2}/
-          var deadline = pattern.exec(self.state.item.fields.deadline)[0];
+          var deadline = pattern.exec(self.state.item.fields.deadline);
+          deadline = deadline ? deadline[0] : "";
           self.setState({newItemDeadline: deadline});
           self.setState({newItemDone: self.state.item.fields.done});
           self.setState({list: JSON.parse(response.data.list)[0]});
@@ -105,6 +107,8 @@ class EditItem extends React.Component {
     var itemDone = false;
     if (this.state.item) { itemDone = this.state.item.fields.done ? true : false; }
 
+    var labelStyle = {"width": "100px", "float": "left"};
+
     return (
       <div>
         <h4><Link to={return_path}>&lt;&lt; Back to {list_name}</Link></h4>
@@ -113,9 +117,9 @@ class EditItem extends React.Component {
         { !this.state.item ? <p style={{ color: "red", fontWeight: "bold" }}><i>Item information not found.</i></p> : <a></a> }
         { this.state.error ? <p style={{ color: "red", fontWeight: "bold" }}><i>There was an error, please try again.</i></p> : <a></a> }
 
-        Text: <input type="text" name="newItemText" value={this.state.newItemText} onChange={this.handleItemChanged} ref={(input) => { this.newItemTextInput = input; }} /> <br/>
-        Deadline: <input type="date" name="newItemDeadline" value={this.state.newItemDeadline} onChange={this.handleItemChanged} ref={(input) => { this.newItemDeadlineInput = input }} /> <br/>
-        Done: <input type="checkbox" name="newItemDone" checked={this.state.newItemDone} onChange={this.handleItemChanged} ref={(input) => { this.newItemDoneInput = input }} /> <br/>
+        <div style={labelStyle}>Text:</div> <input type="text" name="newItemText" value={this.state.newItemText} onChange={this.handleItemChanged} ref={(input) => { this.newItemTextInput = input; }} /> <br/>
+        <div style={labelStyle}>Deadline:</div> <input type="date" name="newItemDeadline" value={this.state.newItemDeadline} onChange={this.handleItemChanged} ref={(input) => { this.newItemDeadlineInput = input }} /> <br/>
+        <div style={labelStyle}>Done:</div> <input type="checkbox" name="newItemDone" checked={this.state.newItemDone} onChange={this.handleItemChanged} ref={(input) => { this.newItemDoneInput = input }} /> <br/>
         <input type="button" value="Edit Item" style={{ margin: "5px"}} onClick={this.submitEditItem} />
 
         <div>

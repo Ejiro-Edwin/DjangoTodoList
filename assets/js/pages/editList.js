@@ -192,6 +192,8 @@ class EditList extends React.Component {
 
     var list_name = this.state.list ? this.state.list[0].fields.name : "";
 
+    var labelStyle = {"width": "100px", "float": "left"};
+
     return (
       <div>
         <h2>Details for list {list_name}</h2>
@@ -211,10 +213,11 @@ class EditList extends React.Component {
           {list_items}
         </ul>
 
+        <br /><br />
         <h4>Add new Item to List</h4>
-        Text: <input type="text" name="newItemText" ref={(input) => { this.newItemTextInput = input; }} /> <br/>
-        Deadline: <input type="date" name="newItemDeadline" ref={(input) => { this.newItemDeadlineInput = input }} /> <br/>
-        Done: <input type="checkbox" name="newItemDone" ref={(input) => { this.newItemDoneInput = input }} /> <br/>
+        <div style={labelStyle}>Text:</div> <input type="text" name="newItemText" ref={(input) => { this.newItemTextInput = input; }} /> <br/>
+        <div style={labelStyle}>Deadline:</div> <input type="date" name="newItemDeadline" ref={(input) => { this.newItemDeadlineInput = input }} /> <br/>
+        <div style={labelStyle}>Done:</div> <input type="checkbox" name="newItemDone" ref={(input) => { this.newItemDoneInput = input }} /> <br/>
         <input type="button" value="Add Item" style={{ margin: "5px"}} onClick={this.submitNewItem} />
 
         <div>
