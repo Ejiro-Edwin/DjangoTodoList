@@ -1,6 +1,7 @@
 {
   "name": "test_labcodes_node",
   "version": "1.0.0",
+  "private": true,
   "description": "Labcodes Challenge - Social Todo List",
   "main": "index.js",
   "scripts": {
